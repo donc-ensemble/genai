@@ -58,7 +58,7 @@ def analyze_image(image_path, user_prompt):
     message = client.messages.create(
         model="claude-3-5-sonnet-20240620",
         temperature=0,
-        max_tokens=1024,
+        max_tokens=4096, #original is 1024, I increased it to 4096 to handle larger responses
         system="You are an expert in HTML, CSS, and JavaScript and UI.",
         messages=[
             {
@@ -82,6 +82,7 @@ def analyze_image(image_path, user_prompt):
     )
     return message.content[0].text
 
+# Flask routes
 @app.route("/")
 def index():
     return render_template("index.html")

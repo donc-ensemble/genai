@@ -251,6 +251,7 @@
                             id="image"
                             name="image"
                             accept=".png,.jpg,.jpeg,.webp"
+                            required
                         />
 
                         <label for="query">Instructions</label>
@@ -302,7 +303,7 @@
                 });
             });
 
-            function addChatMessage(message) {
+            function addChatMessage(message, fileName) {
                 const messageDiv = document.createElement("div");
                 messageDiv.className = "chat-message";
 
@@ -312,6 +313,15 @@
 
                 const content = document.createElement("div");
                 content.textContent = message;
+
+                if (fileName) {
+                    const fileNameSpan = document.createElement("span");
+                    fileNameSpan.style.display = "block";
+                    fileNameSpan.style.fontSize = "0.85rem";
+                    fileNameSpan.style.color = "#64748b";
+                    fileNameSpan.textContent = `Uploaded File: ${fileName}`;
+                    content.appendChild(fileNameSpan);
+                }
 
                 messageDiv.appendChild(timestamp);
                 messageDiv.appendChild(content);
@@ -325,12 +335,17 @@
 
                 const formData = new FormData(form);
                 const query = formData.get("query");
+                const fileInput = form.querySelector('input[type="file"]');
+                const fileName =
+                    fileInput?.files[0]?.name || "No file uploaded";
 
-                addChatMessage(query);
+                addChatMessage(query, fileName);
 
                 codeOutput.textContent = "Processing...";
 
                 try {
+                    form.querySelector("textarea").value = "";
+
                     const response = await fetch("/upload", {
                         method: "POST",
                         body: formData,
@@ -347,8 +362,6 @@
                 } catch (error) {
                     codeOutput.textContent = `Error: ${error.message}`;
                 }
-
-                form.querySelector("textarea").value = "";
             });
         </script>
     </body>
