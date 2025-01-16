@@ -1,0 +1,355 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Image Analysis</title>
+        <style>
+            :root {
+                --primary-color: #367eaa;
+                --primary-hover: #1d4ed8;
+                --bg-color: #f8fafc;
+                --border-color: #e2e8f0;
+                --text-color: #1e293b;
+                --radius: 0.5rem;
+                --shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1),
+                    0 1px 2px -1px rgb(0 0 0 / 0.1);
+            }
+
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+
+            body {
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI",
+                    Roboto, "Helvetica Neue", Arial, sans-serif;
+                color: var(--text-color);
+                line-height: 1.5;
+                background-color: var(--bg-color);
+                min-height: 100vh;
+                display: flex;
+                flex-direction: column;
+            }
+
+            header {
+                background-color: var(--primary-color);
+                padding: 1.5rem 1rem;
+                color: white;
+                text-align: center;
+                box-shadow: var(--shadow);
+            }
+
+            header h1 {
+                font-size: 1.5rem;
+                font-weight: 600;
+                max-width: 800px;
+                margin: 0 auto;
+            }
+
+            main {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                padding: 1rem;
+                gap: 1rem;
+                max-width: 1400px;
+                margin: 0 auto;
+                width: 100%;
+            }
+
+            @media (min-width: 768px) {
+                main {
+                    flex-direction: row;
+                    padding: 2rem;
+                }
+            }
+
+            #left-panel {
+                display: flex;
+                flex-direction: column;
+                gap: 1rem;
+                width: 100%;
+                max-width: 400px;
+            }
+
+            #form-container {
+                background-color: white;
+                padding: 1.5rem;
+                border-radius: var(--radius);
+                box-shadow: var(--shadow);
+            }
+
+            #chat-container {
+                background-color: white;
+                padding: 1.5rem;
+                border-radius: var(--radius);
+                box-shadow: var(--shadow);
+                flex: 1;
+                overflow-y: auto;
+                max-height: 500px;
+            }
+
+            .chat-message {
+                margin-bottom: 1rem;
+                padding: 0.75rem;
+                border-radius: var(--radius);
+                background-color: var(--bg-color);
+            }
+
+            .chat-message .timestamp {
+                font-size: 0.8rem;
+                color: #64748b;
+                margin-bottom: 0.25rem;
+            }
+
+            #form-container label {
+                font-weight: 500;
+                display: block;
+                margin-bottom: 0.5rem;
+                color: var(--text-color);
+            }
+
+            #form-container input[type="file"] {
+                width: 100%;
+                padding: 0.5rem;
+                margin-bottom: 1rem;
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius);
+                background-color: white;
+            }
+
+            #form-container textarea {
+                width: 100%;
+                padding: 0.75rem;
+                margin-bottom: 1rem;
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius);
+                resize: vertical;
+                min-height: 120px;
+                font-family: inherit;
+            }
+
+            #form-container button {
+                width: 100%;
+                padding: 0.75rem 1rem;
+                background-color: var(--primary-color);
+                color: white;
+                border: none;
+                border-radius: var(--radius);
+                font-weight: 500;
+                cursor: pointer;
+                transition: background-color 0.2s;
+            }
+
+            #form-container button:hover {
+                background-color: var(--primary-hover);
+            }
+
+            #right-panel {
+                flex: 1;
+                display: flex;
+                flex-direction: column;
+                background-color: white;
+                border-radius: var(--radius);
+                box-shadow: var(--shadow);
+                overflow: hidden;
+            }
+
+            .tabs {
+                display: flex;
+                background-color: var(--bg-color);
+                padding: 0.5rem 0.5rem 0;
+                gap: 0.5rem;
+            }
+
+            .tab {
+                padding: 0.75rem 1.5rem;
+                background-color: transparent;
+                border: none;
+                border-radius: var(--radius) var(--radius) 0 0;
+                cursor: pointer;
+                font-weight: 500;
+                color: #64748b;
+            }
+
+            .tab.active {
+                background-color: white;
+                color: var(--primary-color);
+            }
+
+            .tab-content {
+                display: none;
+                padding: 1.5rem;
+                flex: 1;
+                overflow: auto;
+            }
+
+            .tab-content.active {
+                display: block;
+            }
+
+            #response-code pre {
+                background-color: var(--bg-color);
+                padding: 1rem;
+                border-radius: var(--radius);
+                overflow: auto;
+                font-family: "Menlo", "Monaco", "Courier New", monospace;
+                font-size: 0.9rem;
+                line-height: 1.5;
+                white-space: pre-wrap;
+                word-break: break-word;
+            }
+
+            #preview-container {
+                height: 100%;
+            }
+
+            #previewIframe {
+                width: 100%;
+                height: 100%;
+                border: 1px solid var(--border-color);
+                border-radius: var(--radius);
+                background-color: white;
+            }
+
+            ::-webkit-scrollbar {
+                width: 8px;
+                height: 8px;
+            }
+
+            ::-webkit-scrollbar-track {
+                background: var(--bg-color);
+            }
+
+            ::-webkit-scrollbar-thumb {
+                background: #cbd5e1;
+                border-radius: 4px;
+            }
+
+            ::-webkit-scrollbar-thumb:hover {
+                background: #94a3b8;
+            }
+        </style>
+    </head>
+    <body>
+        <header>
+            <h1>Image Analysis & HTML Generator</h1>
+        </header>
+        <main>
+            <div id="left-panel">
+                <section id="chat-container">
+                    <h3>Instructions History</h3>
+                    <div id="chat-messages"></div>
+                </section>
+                <section id="form-container">
+                    <form id="uploadForm">
+                        <label for="image">Upload Image</label>
+                        <input
+                            type="file"
+                            id="image"
+                            name="image"
+                            accept=".png,.jpg,.jpeg,.webp"
+                        />
+
+                        <label for="query">Instructions</label>
+                        <textarea
+                            id="query"
+                            name="query"
+                            placeholder="Enter your instructions for image analysis..."
+                        ></textarea>
+
+                        <button type="submit">Analyze Image</button>
+                    </form>
+                </section>
+            </div>
+            <div id="right-panel">
+                <div class="tabs">
+                    <button class="tab active" data-tab="code">
+                        Generated Code
+                    </button>
+                    <button class="tab" data-tab="preview">Preview</button>
+                </div>
+                <div id="code" class="tab-content active">
+                    <pre id="codeOutput">Code will appear here...</pre>
+                </div>
+                <div id="preview" class="tab-content">
+                    <div id="preview-container">
+                        <iframe id="previewIframe"></iframe>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <script>
+            const form = document.getElementById("uploadForm");
+            const codeOutput = document.getElementById("codeOutput");
+            const previewIframe = document.getElementById("previewIframe");
+            const chatMessages = document.getElementById("chat-messages");
+            const tabs = document.querySelectorAll(".tab");
+            const tabContents = document.querySelectorAll(".tab-content");
+
+            tabs.forEach((tab) => {
+                tab.addEventListener("click", () => {
+                    tabs.forEach((t) => t.classList.remove("active"));
+                    tabContents.forEach((c) => c.classList.remove("active"));
+
+                    tab.classList.add("active");
+                    document
+                        .getElementById(tab.dataset.tab)
+                        .classList.add("active");
+                });
+            });
+
+            function addChatMessage(message) {
+                const messageDiv = document.createElement("div");
+                messageDiv.className = "chat-message";
+
+                const timestamp = document.createElement("div");
+                timestamp.className = "timestamp";
+                timestamp.textContent = new Date().toLocaleTimeString();
+
+                const content = document.createElement("div");
+                content.textContent = message;
+
+                messageDiv.appendChild(timestamp);
+                messageDiv.appendChild(content);
+                chatMessages.appendChild(messageDiv);
+
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+
+            form.addEventListener("submit", async (e) => {
+                e.preventDefault();
+
+                const formData = new FormData(form);
+                const query = formData.get("query");
+
+                addChatMessage(query);
+
+                codeOutput.textContent = "Processing...";
+
+                try {
+                    const response = await fetch("/upload", {
+                        method: "POST",
+                        body: formData,
+                    });
+
+                    const result = await response.json();
+
+                    if (result.success) {
+                        codeOutput.textContent = result.html;
+                        previewIframe.srcdoc = result.html;
+                    } else {
+                        codeOutput.textContent = `Error: ${result.error}`;
+                    }
+                } catch (error) {
+                    codeOutput.textContent = `Error: ${error.message}`;
+                }
+
+                form.querySelector("textarea").value = "";
+            });
+        </script>
+    </body>
+</html>
