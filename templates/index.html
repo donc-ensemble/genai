@@ -214,6 +214,47 @@
                 background-color: white;
             }
 
+            #eds-container {
+                display: flex;
+                height: 100%;
+            }
+
+            #eds-tabs {
+                display: flex;
+                flex-direction: column;
+                background-color: var(--bg-color);
+                padding: 0.5rem;
+                gap: 0.5rem;
+                border-right: 1px solid var(--border-color);
+            }
+
+            .eds-tab {
+                padding: 0.75rem 1.5rem;
+                background-color: transparent;
+                border: none;
+                border-radius: var(--radius);
+                cursor: pointer;
+                font-weight: 500;
+                color: #64748b;
+            }
+
+            .eds-tab.active {
+                background-color: white;
+                color: var(--primary-color);
+            }
+
+            .eds-content {
+                display: none;
+                padding: 1.5rem;
+                flex: 1;
+                overflow: auto;
+                position: relative;
+            }
+
+            .eds-content.active {
+                display: block;
+            }
+
             ::-webkit-scrollbar {
                 width: 8px;
                 height: 8px;
@@ -230,6 +271,32 @@
 
             ::-webkit-scrollbar-thumb:hover {
                 background: #94a3b8;
+            }
+
+            .copy-button {
+                position: absolute;
+                top: 0;
+                right: 0;
+                padding: 0.5rem;
+                background-color: var(--primary-color);
+                color: white;
+                border: none;
+                border-radius: var(--radius);
+                cursor: pointer;
+                font-size: 0.875rem;
+                display: flex;
+                align-items: center;
+                gap: 0.25rem;
+                transition: background-color 0.2s;
+            }
+
+            .copy-button:hover {
+                background-color: var(--primary-hover);
+            }
+
+            .copy-button svg {
+                width: 1rem;
+                height: 1rem;
             }
         </style>
     </head>
@@ -271,6 +338,7 @@
                         Generated Code
                     </button>
                     <button class="tab" data-tab="preview">Preview</button>
+                    <button class="tab" data-tab="eds">EDS</button>
                 </div>
                 <div id="code" class="tab-content active">
                     <pre id="codeOutput">Code will appear here...</pre>
@@ -278,6 +346,62 @@
                 <div id="preview" class="tab-content">
                     <div id="preview-container">
                         <iframe id="previewIframe"></iframe>
+                    </div>
+                </div>
+                <div id="eds" class="tab-content">
+                    <div id="eds-container">
+                        <div id="eds-tabs">
+                            <button class="eds-tab active" data-eds-tab="css">
+                                CSS
+                            </button>
+                            <button class="eds-tab" data-eds-tab="js">
+                                JS
+                            </button>
+                        </div>
+                        <div id="css" class="eds-content active">
+                            <button
+                                class="copy-button"
+                                onclick="copyContent('css')"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                    />
+                                </svg>
+                                Copy
+                            </button>
+                            <pre>CSS will appear here...</pre>
+                        </div>
+                        <div id="js" class="eds-content">
+                            <button
+                                class="copy-button"
+                                onclick="copyContent('js')"
+                            >
+                                <svg
+                                    xmlns="http://www.w3.org/2000/svg"
+                                    fill="none"
+                                    viewBox="0 0 24 24"
+                                    stroke="currentColor"
+                                >
+                                    <path
+                                        stroke-linecap="round"
+                                        stroke-linejoin="round"
+                                        stroke-width="2"
+                                        d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
+                                    />
+                                </svg>
+                                Copy
+                            </button>
+                            <pre>JS will appear here...</pre>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -290,6 +414,8 @@
             const chatMessages = document.getElementById("chat-messages");
             const tabs = document.querySelectorAll(".tab");
             const tabContents = document.querySelectorAll(".tab-content");
+            const edsTabs = document.querySelectorAll(".eds-tab");
+            const edsContents = document.querySelectorAll(".eds-content");
 
             tabs.forEach((tab) => {
                 tab.addEventListener("click", () => {
@@ -302,6 +428,51 @@
                         .classList.add("active");
                 });
             });
+
+            edsTabs.forEach((tab) => {
+                tab.addEventListener("click", () => {
+                    edsTabs.forEach((t) => t.classList.remove("active"));
+                    edsContents.forEach((c) => c.classList.remove("active"));
+
+                    tab.classList.add("active");
+                    document
+                        .getElementById(tab.dataset.edsTab)
+                        .classList.add("active");
+                });
+            });
+
+            function extractCSS(htmlString) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlString, "text/html");
+                const styleTag = doc.querySelector("style");
+                return styleTag ? styleTag.textContent : "No CSS found";
+            }
+
+            function extractBody(htmlString) {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(htmlString, "text/html");
+                const body = doc.querySelector("body");
+
+                if (!body) {
+                    return "No body content found";
+                }
+
+                const scriptTags = body.querySelectorAll("script");
+                scriptTags.forEach((script) => {
+                    const originalScriptContent = script.textContent.trim();
+                    if (originalScriptContent) {
+                        const functionContent = `export default function decorate(block) {
+                            ${originalScriptContent}
+                    }`;
+
+                        script.replaceWith(functionContent);
+                    } else {
+                        script.remove();
+                    }
+                });
+
+                return body.innerHTML;
+            }
 
             function addChatMessage(message, fileName) {
                 const messageDiv = document.createElement("div");
@@ -330,6 +501,36 @@
                 chatMessages.scrollTop = chatMessages.scrollHeight;
             }
 
+            async function copyContent(tabId) {
+                const content = document.querySelector(
+                    `#${tabId} pre`
+                ).textContent;
+                const button = document.querySelector(`#${tabId} .copy-button`);
+
+                try {
+                    await navigator.clipboard.writeText(content);
+
+                    const originalText = button.innerHTML;
+                    button.innerHTML = `
+                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
+                        Copied!
+                    `;
+
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                    }, 2000);
+                } catch (err) {
+                    console.error("Failed to copy text: ", err);
+                    button.textContent = "Failed to copy";
+
+                    setTimeout(() => {
+                        button.innerHTML = originalText;
+                    }, 2000);
+                }
+            }
+
             form.addEventListener("submit", async (e) => {
                 e.preventDefault();
 
@@ -356,11 +557,28 @@
                     if (result.success) {
                         codeOutput.textContent = result.html;
                         previewIframe.srcdoc = result.html;
+
+                        const cssContent = extractCSS(result.html);
+                        document.querySelector("#css pre").textContent =
+                            cssContent;
+
+                        const bodyContent = extractBody(result.html);
+
+                        document.querySelector("#js pre").textContent =
+                            bodyContent;
                     } else {
                         codeOutput.textContent = `Error: ${result.error}`;
+                        document.querySelector("#css pre").textContent =
+                            "No CSS available";
+                        document.querySelector("#js pre").textContent =
+                            "No content available";
                     }
                 } catch (error) {
                     codeOutput.textContent = `Error: ${error.message}`;
+                    document.querySelector("#css pre").textContent =
+                        "Error loading CSS";
+                    document.querySelector("#js pre").textContent =
+                        "Error loading content";
                 }
             });
         </script>
