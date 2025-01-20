@@ -24,29 +24,36 @@ def get_media_type(file_extension):
 
 def analyze_image(image_path, user_prompt):
     base_prompt = (
-        "Generate CSS and HTML based on the image provided. "
-        "Use a placeholder if an image is needed from https://picsum.photos/. "
+        "Generate CSS, HTML, and JavaScript based on the provided image. "
+        "Use a placeholder image from https://picsum.photos/ if an image is needed. "
         "Strictly do not add any comments to the code."
-        "All the code must be generated, no shortcuts. "
+        "All the code must be fully generated—avoid shortcuts. "
+        "All the code must be generated, no shortcuts."
+        "Ensure the JavaScript dynamically generates and appends all necessary HTML elements to the body. "
+        "Any hardcoded HTML in the body should be removed and replaced with JavaScript logic."
+        "Create a <div> with and add a class name to the div inside the body using Javascript ONLY. Strictly DO NOT USE *-container and *-wrapper class names"
+        "Strictly follow this structure for the output:"
         '''
-            <!DOCTYPE html>
+        <!DOCTYPE html>
         <html lang="en">
-        <head>`
+        <head>
             <meta charset="UTF-8" />
             <meta name="viewport" content="width=device-width, initial-scale=1.0" />
             <style>
-                The CSS must go here
+                /* The CSS must go here */
             </style>
         </head>
         <body>
-            The html body has to go here
+            <!-- The HTML body must be dynamically created using JavaScript. Do not hardcode any content here. -->
             <script>
-            Related javascript goes here if there is any
+                /* Write JavaScript to dynamically generate the HTML body. Ensure all elements in the body are created and appended via JavaScript. */
             </script>
         </body>
         </html>
         '''
+        
     )
+
 
     full_prompt = f"{base_prompt} {user_prompt}"
 
@@ -97,7 +104,6 @@ def upload():
         image.save(image_path)
 
         response = analyze_image(image_path, query)
-        print(response)
         os.remove(image_path)
 
         return jsonify({"success": True, "html": response})
